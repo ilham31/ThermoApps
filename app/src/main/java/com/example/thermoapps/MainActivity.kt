@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import androidx.fragment.app.Fragment
 import com.example.thermoapps.about.AboutFragment
+import com.example.thermoapps.home.HomePageFragment
 import com.example.thermoapps.prediction.PredictionFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
@@ -31,7 +32,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         this.doubleBackToExitPressedOnce = true
-        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Tekan Back Sekali Lagi Untuk Keluar", Toast.LENGTH_SHORT).show()
 
         Handler().postDelayed(Runnable { doubleBackToExitPressedOnce = false }, 2000)
     }
@@ -39,13 +40,21 @@ class MainActivity : AppCompatActivity() {
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
             R.id.menu_home -> {
-                toolbar.title = "Prediction"
+                toolbar.title = "Beranda"
+                val homePageFragment = HomePageFragment.newInstance()
+                openFragment(homePageFragment)
+                return@OnNavigationItemSelectedListener true
+            }
+
+            R.id.menu_predict -> {
+                toolbar.title = "Prediksi"
                 val predictionFragment = PredictionFragment.newInstance()
                 openFragment(predictionFragment)
                 return@OnNavigationItemSelectedListener true
             }
+
             R.id.menu_about -> {
-                toolbar.title = "About"
+                toolbar.title = "Info"
                 val aboutFragment = AboutFragment.newInstance()
                 openFragment(aboutFragment)
                 return@OnNavigationItemSelectedListener true
