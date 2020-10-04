@@ -1,6 +1,7 @@
 package com.example.thermoapps.prediction
 
 import android.app.Activity
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -11,12 +12,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
+import com.example.thermoapps.FileUtil
 import com.example.thermoapps.Network.ApiConfig
+import com.example.thermoapps.Network.ResponseModel.PredictionModel
 import com.example.thermoapps.Network.ResponseModel.UploadImage
 import com.example.thermoapps.R
+import com.example.thermoapps.ResultPrediction
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
 import kotlinx.android.synthetic.main.fragment_prediction.*
@@ -24,6 +27,7 @@ import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
+import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 
@@ -38,17 +42,15 @@ class PredictionFragment : Fragment() {
         }
 
         sample_positive.setOnClickListener {
-            val uriFormat = Uri.parse("android.resource://"+ (context?.packageName ?: "") +"/drawable/sample_positive.jpg")
-            val requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), uriFormat.toFile())
-            imageFile = MultipartBody.Part.createFormData("image",uriFormat.toFile().name,requestBody)
-            setImage(uriFormat)
+            val file = FileUtil.fileFromDrawable(context, R.drawable.sample_positive)
+            imageFile =  MultipartBody.Part.createFormData("image", file.getName(), RequestBody.create(MediaType.parse("image/jpeg"), file))
+            setImageFromDrawable(R.drawable.sample_positive)
         }
 
         sample_negative.setOnClickListener {
-            val uriFormat = Uri.parse("android.resource://"+ (context?.packageName ?: "") +"/drawable/sample_negative.jpg")
-            val requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), uriFormat.toFile())
-            imageFile = MultipartBody.Part.createFormData("image",uriFormat.toFile().name,requestBody)
-            setImage(uriFormat)
+            val file = FileUtil.fileFromDrawable(context, R.drawable.sample_negative)
+            imageFile =  MultipartBody.Part.createFormData("image", file.getName(), RequestBody.create(MediaType.parse("image/jpeg"), file))
+            setImageFromDrawable(R.drawable.sample_negative)
         }
 
         submit_predict.setOnClickListener {
@@ -88,10 +90,8 @@ class PredictionFragment : Fragment() {
             CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE -> {
                 val result = CropImage.getActivityResult(data)
                 if (resultCode == Activity.RESULT_OK) {
-                    Log.e(TAG, "filename: ${result.uri.toFile().name}" )
-                    val requestBody = RequestBody.create(MediaType.parse("image/*"), result.uri.toFile())
-                    imageFile = MultipartBody.Part.createFormData("image",result.uri.toFile().name,requestBody)
-
+                    val file = FileUtil.fromURI(context,result.uri)
+                    imageFile =  MultipartBody.Part.createFormData("image", file.getName(), RequestBody.create(MediaType.parse("image/jpeg"), file))
                     setImage(result.uri)
                 }
                 else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
@@ -99,6 +99,15 @@ class PredictionFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun setImageFromDrawable(id: Int) {
+        Glide.with(this)
+            .load(id)
+            .into(image)
+        val density = context?.resources?.displayMetrics?.density
+        image.layoutParams.height = (150 * density!!).toInt()
+        predictionButtonState(true)
     }
 
     private fun setImage(uri: Uri){
@@ -140,10 +149,13 @@ class PredictionFragment : Fragment() {
     }
 
     private fun uploadImage() {
+        progress_predict.visibility = View.VISIBLE
+        progress_predict.bringToFront()
         val call = ApiConfig().instance().upload(imageFile)
         call.enqueue(object : retrofit2.Callback<UploadImage> {
             // handling request saat fail
             override fun onFailure(call: Call<UploadImage>?, t: Throwable?) {
+                progress_predict.visibility = View.GONE
                 Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show()
                 Log.d("ONFAILURE", t.toString())
             }
@@ -151,8 +163,46 @@ class PredictionFragment : Fragment() {
             // handling request saat response.
             override fun onResponse(call: Call<UploadImage>?, response: Response<UploadImage>?) {
                 // menampilkan pesan yang diambil dari response.
-                Toast.makeText(context, response?.body()?.currentFormat, Toast.LENGTH_SHORT).show()
+
+                Toast.makeText(context, response?.body()?.message, Toast.LENGTH_SHORT).show()
+                val status = response?.body()?.status
+                if (status!!) {
+                    val imagePath = response.body()!!.image
+                    if (imagePath != null) {
+                        Log.d("image path", imagePath)
+                        predictImage(imagePath)
+                    }
+                }  else {
+                    Toast.makeText(context, response?.body()?.message, Toast.LENGTH_SHORT).show()
+                }
             }
         })
     }
+
+    private  fun predictImage(imagePath: String) {
+        val predict = ApiConfig().instance().processPrediction(imagePath)
+            predict.enqueue(object : Callback<PredictionModel>{
+                override fun onFailure(call: Call<PredictionModel>, t: Throwable) {
+                    progress_predict.visibility = View.GONE
+                    Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show()
+                    Log.d("ONFAILURE", t.toString())
+                }
+
+                override fun onResponse(
+                    call: Call<PredictionModel>,
+                    response: Response<PredictionModel>
+                ) {
+                    progress_predict.visibility = View.GONE
+                    val successPredict = response.body()?.status
+                    if (successPredict!!) {
+                        val intent = Intent(activity, ResultPrediction::class.java)
+                        intent.putExtra("imageData", response.body()!!.image?.base64Data)
+                        intent.putExtra("probability", response.body()!!.prob)
+                        startActivity(intent)
+                    } else {
+                        Toast.makeText(context, response?.body()?.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            })
+        }
 }

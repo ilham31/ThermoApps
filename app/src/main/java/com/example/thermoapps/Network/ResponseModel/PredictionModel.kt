@@ -2,16 +2,16 @@ package com.example.thermoapps.Network.ResponseModel
 
 import com.google.gson.annotations.SerializedName
 
-data class UploadImage (
+data class PredictionModel (
     @SerializedName("status")
     var status:Boolean?,
+
+    @SerializedName("prob")
+    var prob:String?,
 
     @SerializedName("message")
     var message:String?,
 
     @SerializedName("image")
-    var image:String?,
-
-    @SerializedName("current_format")
-    var currentFormat:String?
+    var image:PredictedImageModel?
 )

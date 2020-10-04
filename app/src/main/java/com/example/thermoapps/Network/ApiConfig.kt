@@ -1,5 +1,6 @@
 package com.example.thermoapps.Network
 
+import com.example.thermoapps.Network.ResponseModel.PredictionModel
 import com.example.thermoapps.Network.ResponseModel.UploadImage
 import okhttp3.MultipartBody
 import retrofit2.Call
@@ -11,7 +12,6 @@ class ApiConfig{
     companion object {
         // base url dari end point.
         const val BASE_URL = "http://thermo.apps.cs.ipb.ac.id/predictors/"
-
     }
 
     // init retrofit
@@ -32,6 +32,12 @@ interface ApiInterface{
     @Multipart
     @POST("upload-image") // endpoint upload
     fun upload(
-        @Part image:MultipartBody.Part
+        @Part file:MultipartBody.Part
     ) : Call<UploadImage> // response
+
+    @FormUrlEncoded
+    @POST("process")
+    fun processPrediction(
+        @Field("image_path")imagePath:String
+    ) : Call<PredictionModel>
 }

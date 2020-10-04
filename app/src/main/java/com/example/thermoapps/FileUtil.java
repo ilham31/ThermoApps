@@ -1,10 +1,7 @@
 package com.example.thermoapps;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Environment;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -51,6 +48,29 @@ public class FileUtil {
     public static File documentFromURI(Context context, Uri uri, String filename) throws IOException{
         InputStream inputStream = context.getContentResolver().openInputStream(uri);
         String mFileName = filename;
+        File tempFile = File.createTempFile("temp",mFileName);
+        tempFile.deleteOnExit();
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(tempFile);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        if (inputStream!=null){
+            copy(inputStream, out);
+            inputStream.close();
+        }
+        if (out!=null){
+            out.close();
+        }
+
+        return tempFile;
+    }
+
+    public static File fileFromDrawable(Context context, Integer drawableId) throws IOException {
+        InputStream inputStream = context.getResources().openRawResource(drawableId);
+        String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(new Date());
+        String mFileName = timeStamp + "_" + ".jpg";
         File tempFile = File.createTempFile("temp",mFileName);
         tempFile.deleteOnExit();
         FileOutputStream out = null;
