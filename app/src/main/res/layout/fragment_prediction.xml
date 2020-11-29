@@ -3,88 +3,108 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     tools:context=".prediction.PredictionFragment">
 
     <include
         android:id="@+id/progress_predict"
         android:visibility="gone"
-        layout="@layout/loading_component"/>
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        layout="@layout/loading_component" />
 
-    <RelativeLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp">
+        android:id="@+id/scrollview_prediction">
 
-        <ImageView
+        <RelativeLayout xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:id="@+id/image"
-            android:scaleType= "fitCenter"
-            android:adjustViewBounds="true"
-            android:layout_marginTop="16dp"
-            />
+            android:layout_height="match_parent"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp">
 
-        <Button
-            android:layout_below="@id/image"
-            android:id="@+id/pick_from_galery"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:text="Pilih Gambar Dari Galeri"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            android:background="@color/colorButtonPrimary"
-            android:layout_marginTop="16dp"
-            />
-
-        <TextView
-            android:id="@+id/info_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Atau pilih sample gambar dibawah ini"
-            android:layout_below="@id/pick_from_galery"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="32dp"/>
-
-        <LinearLayout
-            android:id="@+id/linear_layout_sample_image"
-            android:layout_marginTop="32dp"
-            android:layout_below="@id/info_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_weight="1">
+            <WebView
+                android:layout_marginTop="16dp"
+                android:id="@+id/predict_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
             <ImageView
-                android:id="@+id/sample_positive"
-                android:layout_weight="1"
+                android:layout_below="@id/predict_info"
                 android:layout_width="0dp"
-                android:layout_height="150dp"
-                android:layout_marginRight="16dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/sample_positive"/>
+                android:layout_height="0dp"
+                android:layout_centerHorizontal="true"
+                android:id="@+id/image"
+                android:scaleType= "fitCenter"
+                android:adjustViewBounds="true"
+                android:layout_marginTop="16dp"
+                />
 
-            <ImageView
-                android:id="@+id/sample_negative"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="150dp"
-                android:src="@drawable/sample_negative"
-                android:scaleType="fitXY"/>
-        </LinearLayout>
+            <Button
+                android:layout_below="@id/image"
+                android:id="@+id/pick_from_galery"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="Pilih Gambar Dari Galeri"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:background="@color/colorButtonPrimary"
+                android:layout_marginTop="16dp"
+                />
 
-        <Button
-            android:layout_marginTop="32dp"
-            android:layout_below="@id/linear_layout_sample_image"
-            android:enabled="false"
-            android:id="@+id/submit_predict"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:text="Prediksi"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            android:background="@color/colorButtonPrimary"
-            android:layout_marginBottom="16dp"
-            />
-    </RelativeLayout>
+            <TextView
+                android:id="@+id/info_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Atau pilih gambar dari contoh di bawah ini"
+                android:layout_below="@id/pick_from_galery"
+                android:layout_centerHorizontal="true"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginTop="32dp"/>
+
+            <LinearLayout
+                android:id="@+id/linear_layout_sample_image"
+                android:layout_marginTop="32dp"
+                android:layout_below="@id/info_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:id="@+id/sample_positive"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="16dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/sample_positive"/>
+
+                <ImageView
+                    android:id="@+id/sample_negative"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/sample_negative"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"/>
+            </LinearLayout>
+
+            <Button
+                android:layout_marginTop="32dp"
+                android:layout_below="@id/linear_layout_sample_image"
+                android:enabled="false"
+                android:id="@+id/submit_predict"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="Prediksi"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:background="@color/colorButtonPrimary"
+                android:layout_marginBottom="16dp"
+                />
+        </RelativeLayout>
+    </ScrollView>
 </FrameLayout>

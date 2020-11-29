@@ -2,16 +2,5 @@
     <string name="app_name"> IPB ThermoApps</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="home_page_info">IPB ThermoApps adalah aplikasi untuk memprediksi status kehamilan monyet kra berdasarkan foto termal. Model prediksi dibangun dengan menggunakan Deep Learning, khususnya arsitektur Convolutional Neural Network (CNN).</string>
-    <string name="more_apps_info">Akuisisi data:\n
-Pengguna dapat mengambil citra monyet kra dengan menggunakan kamera termal seperti kamera FLIR ONE Pro.\n
-
-Proses:\n
-Pengguna memilih citra termal yang akan diprediksi --> citra termal diun ggah ke server --> model prediksi menggunakan CNN kan menghitung probabilitas hasil prediksi status kehamilan di bagian perut (abdomen) dari monyet kra --> pengguna memperoleh hasil prediksi tentang status kehamilan monyet kra.\n
-
-
-Acknowledge:\n
-Penelitian ini didanai oleh Penelitian Terapan Unggulan Perguruan Tinggi (PTUPT), IPB University\n
-2019-2020</string>
-
+    <string name="home_page_info">IPB ThermoApps adalah aplikasi untuk memprediksi status kehamilan monyet ekor panjang (<i>Macaca fascicularis</i>) melalui citra termal. Model prediksi dibangun dengan menggunakan Deep Learning, khususnya arsitektur Convolutional Neural Network (CNN).</string>
 </resources>

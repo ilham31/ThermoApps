@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     tools:context=".about.AboutFragment">
 
     <!-- TODO: Update blank fragment layout -->
@@ -11,29 +12,13 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="@android:color/white"
-        android:layout_margin="16dp">
+        android:layout_margin="8dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="Akuisisi data:\nPengguna dapat mengambil citra monyet kra dengan menggunakan kamera termal seperti kamera FLIR ONE Pro."/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="Proses:\nPengguna memilih citra termal yang akan
- diprediksi --> citra termal diunggah ke server --> model prediksi menggunakan CNN kan menghitung probabilitas hasil prediksi status kehamilan di bagian perut (abdomen) dari monyet kra --> pengguna memperoleh hasil prediksi tentang status kehamilan monyet kra."/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="Acknowledge:\nPenelitian ini didanai oleh Penelitian Terapan Unggulan Perguruan Tinggi (PTUPT), IPB University
-2019-2020"/>
-
-
+        <WebView
+            android:layout_marginTop="16dp"
+            android:id="@+id/about_app"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 
-</FrameLayout>
+</androidx.core.widget.NestedScrollView>

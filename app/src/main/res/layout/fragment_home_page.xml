@@ -20,22 +20,25 @@
             <ImageView
                 android:layout_weight="1"
                 android:layout_width="0dp"
-                android:layout_height="300dp"
+                android:layout_height="wrap_content"
                 android:layout_marginRight="16dp"
-                android:scaleType="fitXY"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
                 android:src="@drawable/result_positive_image"/>
 
             <ImageView
                 android:layout_weight="1"
                 android:layout_width="0dp"
-                android:layout_height="300dp"
+                android:layout_height="wrap_content"
                 android:src="@drawable/result_negative_image"
-                android:scaleType="fitXY"/>
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"/>
         </LinearLayout>
             <TextView
+                android:id="@+id/info_home_page"
                 android:layout_marginTop="16dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/home_page_info" />
+                android:textColor="@color/colorPrimary"/>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

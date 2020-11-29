@@ -1,7 +1,6 @@
 package com.example.thermoapps.prediction
 
 import android.app.Activity
-import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -9,12 +8,14 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.thermoapps.FileUtil
+import com.example.thermoapps.MainActivity
 import com.example.thermoapps.Network.ApiConfig
 import com.example.thermoapps.Network.ResponseModel.PredictionModel
 import com.example.thermoapps.Network.ResponseModel.UploadImage
@@ -34,6 +35,35 @@ import java.io.File
 class PredictionFragment : Fragment() {
     private val TAG: String = "AppDebug"
     private val GALLERY_REQUEST_CODE = 1234
+    private lateinit var fileForPrediction: File
+    private val html: String =
+        """
+            <html>
+            <head>
+            <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+            <style type="text/css">
+            body {
+                font-family: 'Roboto-Light';
+                font-size: 14px;
+                text-align: justify;
+            }
+            li p {
+                margin-top: 4px;
+                margin-bottom: 0px;
+                padding: 0;
+                color: #3b413c;
+            }
+            </style>
+            </head>
+            <body>
+                <b>Proses Prediksi:</b>
+                    <ol>
+                        <li><p>Silahkan unggah foto yang akan diprediksi (Anda juga dapat menggunakan contoh foto di bawah ini).</p></li>
+                        <li><p>Setelah menentukan foto yang akan diprediksi, klik tombol Prediksi di bagian bawah halaman ini.</p></li>
+                    </ol>
+            </body>
+            </html>
+        """.trimIndent()
     lateinit var imageFile:MultipartBody.Part
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -43,21 +73,25 @@ class PredictionFragment : Fragment() {
 
         sample_positive.setOnClickListener {
             val file = FileUtil.fileFromDrawable(context, R.drawable.sample_positive)
-            imageFile =  MultipartBody.Part.createFormData("image", file.getName(), RequestBody.create(MediaType.parse("image/jpeg"), file))
+            fileForPrediction = file
             setImageFromDrawable(R.drawable.sample_positive)
         }
 
         sample_negative.setOnClickListener {
             val file = FileUtil.fileFromDrawable(context, R.drawable.sample_negative)
-            imageFile =  MultipartBody.Part.createFormData("image", file.getName(), RequestBody.create(MediaType.parse("image/jpeg"), file))
+            fileForPrediction = file
             setImageFromDrawable(R.drawable.sample_negative)
         }
 
         submit_predict.setOnClickListener {
+            isScrollEnabled(false)
             uploadImage()
         }
 
         predictionButtonState(false)
+
+        predict_info.isVerticalScrollBarEnabled = false
+        predict_info.loadDataWithBaseURL(null,html,"text/html","utf-8", null)
     }
 
     override fun onCreateView(
@@ -91,7 +125,7 @@ class PredictionFragment : Fragment() {
                 val result = CropImage.getActivityResult(data)
                 if (resultCode == Activity.RESULT_OK) {
                     val file = FileUtil.fromURI(context,result.uri)
-                    imageFile =  MultipartBody.Part.createFormData("image", file.getName(), RequestBody.create(MediaType.parse("image/jpeg"), file))
+                    fileForPrediction = file
                     setImage(result.uri)
                 }
                 else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
@@ -106,7 +140,9 @@ class PredictionFragment : Fragment() {
             .load(id)
             .into(image)
         val density = context?.resources?.displayMetrics?.density
-        image.layoutParams.height = (150 * density!!).toInt()
+        image.layoutParams.height = (240 * density!!).toInt()
+        image.layoutParams.width = (240 * density!!).toInt()
+        image.adjustViewBounds = true
         predictionButtonState(true)
     }
 
@@ -115,7 +151,9 @@ class PredictionFragment : Fragment() {
             .load(uri)
             .into(image)
         val density = context?.resources?.displayMetrics?.density
-        image.layoutParams.height = (150 * density!!).toInt()
+        image.layoutParams.height = (240 * density!!).toInt()
+        image.layoutParams.width = (240 * density!!).toInt()
+        image.adjustViewBounds = true
         predictionButtonState(true)
     }
 
@@ -148,42 +186,71 @@ class PredictionFragment : Fragment() {
         submit_predict.isEnabled = isAlreadySelectPicture
     }
 
-    private fun uploadImage() {
-        progress_predict.visibility = View.VISIBLE
-        progress_predict.bringToFront()
-        val call = ApiConfig().instance().upload(imageFile)
-        call.enqueue(object : retrofit2.Callback<UploadImage> {
-            // handling request saat fail
-            override fun onFailure(call: Call<UploadImage>?, t: Throwable?) {
-                progress_predict.visibility = View.GONE
-                Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show()
-                Log.d("ONFAILURE", t.toString())
-            }
+    private fun validateFileSize(fileToUpload: File): Boolean  {
+        Log.d("File Size", "File Size in KB = " + fileToUpload.length() / 1024)
+        return  fileToUpload.length()/1024 <= 1024*3
+    }
 
-            // handling request saat response.
-            override fun onResponse(call: Call<UploadImage>?, response: Response<UploadImage>?) {
-                // menampilkan pesan yang diambil dari response.
+    private fun modifyBottomNavigationState(isEnabled: Boolean) {
+        (activity as MainActivity?)!!.bottomNavigationButtonState(isEnabled)
+    }
 
-                Toast.makeText(context, response?.body()?.message, Toast.LENGTH_SHORT).show()
-                val status = response?.body()?.status
-                if (status!!) {
-                    val imagePath = response.body()!!.image
-                    if (imagePath != null) {
-                        Log.d("image path", imagePath)
-                        predictImage(imagePath)
-                    }
-                }  else {
-                    Toast.makeText(context, response?.body()?.message, Toast.LENGTH_SHORT).show()
-                }
+    private fun isScrollEnabled(isEnabled: Boolean) {
+        scrollview_prediction.setOnTouchListener(object : View.OnTouchListener {
+            override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+                return !isEnabled
             }
         })
+    }
+
+    private fun uploadImage() {
+        if (validateFileSize(fileForPrediction)) {
+            progress_predict.visibility = View.VISIBLE
+            progress_predict.bringToFront()
+            modifyBottomNavigationState(false)
+            imageFile =  MultipartBody.Part.createFormData("image", fileForPrediction.getName(), RequestBody.create(MediaType.parse("image/jpeg"), fileForPrediction))
+            val call = ApiConfig().instance().upload(imageFile)
+            call.enqueue(object : retrofit2.Callback<UploadImage> {
+                // handling request saat fail
+                override fun onFailure(call: Call<UploadImage>?, t: Throwable?) {
+                    modifyBottomNavigationState(true)
+                    progress_predict.visibility = View.GONE
+                    isScrollEnabled(true)
+                    Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show()
+                    Log.d("ONFAILURE", t.toString())
+                }
+
+                // handling request saat response.
+                override fun onResponse(call: Call<UploadImage>?, response: Response<UploadImage>?) {
+                    // menampilkan pesan yang diambil dari response.
+                    Toast.makeText(context, response?.body()?.message, Toast.LENGTH_SHORT).show()
+                    val status = response?.body()?.status
+                    if (status!!) {
+                        val imagePath = response.body()!!.image
+                        if (imagePath != null) {
+                            Log.d("image path", imagePath)
+                            predictImage(imagePath)
+                        }
+                    }  else {
+                        modifyBottomNavigationState(true)
+                        progress_predict.visibility = View.GONE
+                        isScrollEnabled(true)
+                        Toast.makeText(context, response?.body()?.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            })
+        } else {
+            Toast.makeText(context, "Gambar yang anda pilih memiliki size yang besar", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private  fun predictImage(imagePath: String) {
         val predict = ApiConfig().instance().processPrediction(imagePath)
             predict.enqueue(object : Callback<PredictionModel>{
                 override fun onFailure(call: Call<PredictionModel>, t: Throwable) {
+                    modifyBottomNavigationState(true)
                     progress_predict.visibility = View.GONE
+                    scrollview_prediction.isEnabled = true
                     Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show()
                     Log.d("ONFAILURE", t.toString())
                 }
@@ -193,13 +260,19 @@ class PredictionFragment : Fragment() {
                     response: Response<PredictionModel>
                 ) {
                     progress_predict.visibility = View.GONE
+                    isScrollEnabled(true)
                     val successPredict = response.body()?.status
                     if (successPredict!!) {
                         val intent = Intent(activity, ResultPrediction::class.java)
                         intent.putExtra("imageData", response.body()!!.image?.base64Data)
                         intent.putExtra("probability", response.body()!!.prob)
+                        intent.putExtra("input_image", fileForPrediction)
+                        modifyBottomNavigationState(true)
                         startActivity(intent)
                     } else {
+                        modifyBottomNavigationState(true)
+                        progress_predict.visibility = View.GONE
+                        isScrollEnabled(true)
                         Toast.makeText(context, response?.body()?.message, Toast.LENGTH_SHORT).show()
                     }
                 }
